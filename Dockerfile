@@ -87,7 +87,10 @@ RUN mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
     ln -nfs /data/app ~/Code
 
 COPY customize.sh ${HOMEPATH}/customize.sh
-RUN chmod +x ${HOMEPATH}/customize.sh && ${HOMEPATH}/customize.sh --install-cronjob
+USER root
+RUN chmod +x ${HOMEPATH}/customize.sh && chown www:www ${HOMEPATH}/customize.sh
+USER www
+RUN ${HOMEPATH}/customize.sh --install-cronjob
 
 RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.1/zsh-in-docker.sh)" -- \
 #    -t powerlevel10k/powerlevel10k \
