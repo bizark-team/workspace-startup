@@ -145,12 +145,12 @@ RUN mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
     cd ~/tmp && \
     git clone https://github.com/powerline/fonts.git --depth=1 && \
     cd ~/tmp/fonts && \
-    . ~/tmp/fonts/install.sh && \
+    ~/tmp/fonts/install.sh && \
     cd ~/.local/share/fonts && rm -rf ~/tmp/fonts && \
     wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.0.0/Hack.zip && \
     unzip Hack.zip && \
     rm -rf Hack.zip && \
-    fc-cache -vf && \
+    fc-cache -vf
 
 RUN sed -i -E "/\.myenvset/d" ${HOMEPATH}/.profile && \
     echo "if [ -f $HOME/.myenvset ]; then source $HOME/.myenvset;fi" >> ${HOMEPATH}/.profile && \
