@@ -6,6 +6,8 @@ ARG ZSH_THEME="powerlevel10k"
 ARG TERM="xterm-256color"
 ARG DEBIAN_FRONTEND=noninteractive
 ARG TZ=etc/UTC
+ARG CONDA_ENV_NAME="myenv"
+ARG CONDA_ENV_PY_VER="3.7"
 
 FROM ubuntu:18.04
 LABEL maintainer="Nick Fan <nickfan81@gmail.com>"
@@ -21,12 +23,19 @@ ARG TERM
 ENV TERM=${TERM}
 ARG ZSH_THEME
 ENV ZSH_THEME=${ZSH_THEME}
+ARG CONDA_ENV_NAME
+ENV CONDA_ENV_NAME=${CONDA_ENV_NAME}
+ARG CONDA_ENV_PY_VER
+ENV CONDA_ENV_PY_VER=${CONDA_ENV_PY_VER}
 
 #ENV HOME /home/${USER_NAME}
 ENV HOMEPATH /home/${USER_NAME}
 SHELL ["/bin/bash", "-c"]
 
 RUN set -eux; \
+    echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf && \
+    echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf && \
+    sysctl -p && \
     apt-get update; \
     apt-get install -y --no-install-recommends \
     sudo net-tools iputils-ping iproute2 telnet curl wget nano procps traceroute iperf3 openssh-client openssh-server language-pack-en-base language-pack-zh-hans \
@@ -35,6 +44,9 @@ RUN set -eux; \
     addgroup ${USER_NAME} && adduser --quiet --disabled-password --shell /bin/zsh --ingroup ${USER_NAME} --home /home/${USER_NAME} --gecos "User" ${USER_NAME} && \
     echo "${USER_NAME}:${USER_PASSWORD}" | chpasswd && usermod -aG sudo ${USER_NAME} && usermod -aG adm ${USER_NAME} && usermod -aG www-data ${USER_NAME} && \
     sed -i -E "s/^Defaults env_reset/Defaults env_reset, timestamp_timeout=-1/g" /etc/sudoers && \
+    sed -i -E "/\.myenvset/d" /root/.profile && \
+    echo "if [ -f $HOME/.myenvset ]; then source $HOME/.myenvset;fi" >> /root/.profile && \
+    if [ -f $HOME/.myenvset ]; then source $HOME/.myenvset;fi
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
     mkdir -p /data/{app/{backup,etc,tmp,certs,www,ops,downloads/temp},var/{log/app,run,tmp}} && \
     ln -nfs /data/var /data/app/var && \
@@ -119,7 +131,9 @@ USER root
 RUN chmod +x ${HOMEPATH}/customize.sh && chown ${USER_NAME}:${USER_NAME} ${HOMEPATH}/customize.sh
 USER ${USER_NAME}
 RUN ${HOMEPATH}/customize.sh --install-cronjob
-
+RUN sed -i -E "/\.myenvset/d" ${HOMEPATH}/.profile && \
+    echo "if [ -f $HOME/.myenvset ]; then source $HOME/.myenvset;fi" >> ${HOMEPATH}/.profile
+RUN curl -L https://iterm2.com/shell_integration/install_shell_integration_and_utilities.sh | bash
 RUN cd ~ && git clone https://github.com/gpakosz/.tmux.git && \
     ln -s -f .tmux/.tmux.conf && \
     cp .tmux/.tmux.conf.local .
@@ -128,7 +142,25 @@ RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && ~/.fzf/ins
 
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
     bash ~/miniconda.sh -b -p ${HOME}/miniconda
-
+RUN conda init zsh && . ~/.zshrc && conda update -n base -c defaults conda && conda create --name ${CONDA_ENV_NAME} python=${CONDA_ENV_PY_VER} && conda activate ${CONDA_ENV_NAME} conda install -n ${CONDA_ENV_NAME} pip setuptools wheel nodejs=12 yarn=1.22
+RUN pip install -U pip setuptools wheel six pqi && npm install -g nrm yrm cnpm cyarn pm2@latest typescript npm-check @vue/cli @vue/cli-service-global @vue/cli-init
+#RUN echo $' \n\
+## >>> conda initialize >>> \n\
+## !! Contents within this block are managed by 'conda init' !!  \n\
+#__conda_setup="$('/home/${USER_NAME}/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"  \n\
+#if [ $? -eq 0 ]; then  \n\
+#    eval "$__conda_setup"  \n\
+#else \n\
+#    if [ -f "/home/${USER_NAME}/miniconda3/etc/profile.d/conda.sh" ]; then \n\
+#        . "/home/${USER_NAME}/miniconda3/etc/profile.d/conda.sh" \n\
+#    else \n\
+#        export PATH="/home/${USER_NAME}/miniconda3/bin:$PATH" \n\
+#    fi \n\
+#fi \n\
+#unset __conda_setup \n\
+## <<< conda initialize <<< \n\
+#source /home/${USER_NAME}/miniconda3/bin/activate myenv \n\
+# \n ' >> ~/.zshrc
 USER root
 RUN rm -rf /var/lib/apt/lists/*;
 RUN rm -rf ~/setup/*;
