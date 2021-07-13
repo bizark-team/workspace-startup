@@ -145,7 +145,7 @@ RUN mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
     cd ~/tmp && \
     git clone https://github.com/powerline/fonts.git --depth=1 && \
     cd ~/tmp/fonts && \
-    ./install.sh && \
+    . ~/tmp/fonts/install.sh && \
     cd ~/.local/share/fonts && rm -rf ~/tmp/fonts && \
     wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.0.0/Hack.zip && \
     unzip Hack.zip && \
@@ -158,7 +158,6 @@ RUN sed -i -E "/\.myenvset/d" ${HOMEPATH}/.profile && \
 RUN curl -L https://iterm2.com/shell_integration/install_shell_integration_and_utilities.sh | bash
 RUN cd ~ && git clone https://github.com/gpakosz/.tmux.git && \
     ln -s -f .tmux/.tmux.conf && \
-    cp .tmux/.tmux.conf.local . && \
     git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && ~/.fzf/install && \
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
     bash ~/miniconda.sh -b -p ${HOME}/miniconda3
