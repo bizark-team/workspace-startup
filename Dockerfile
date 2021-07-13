@@ -46,7 +46,6 @@ RUN set -eux; \
     sed -i -E "s/^Defaults env_reset/Defaults env_reset, timestamp_timeout=-1/g" /etc/sudoers && \
     sed -i -E "/\.myenvset/d" /root/.profile && \
     echo "if [ -f $HOME/.myenvset ]; then source $HOME/.myenvset;fi" >> /root/.profile && \
-    if [ -f $HOME/.myenvset ]; then source $HOME/.myenvset;fi
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
     mkdir -p /data/{app/{backup,etc,tmp,certs,www,ops,downloads/temp},var/{log/app,run,tmp}} && \
     ln -nfs /data/var /data/app/var && \
