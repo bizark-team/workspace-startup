@@ -154,7 +154,6 @@ RUN mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
 RUN sed -i -E "/\.myenvset/d" ${HOMEPATH}/.profile && \
     echo "if [ -f $HOME/.myenvset ]; then source $HOME/.myenvset;fi" >> ${HOMEPATH}/.profile && \
     cp -n /usr/share/maven/conf/settings.xml ~/.m2/
-RUN
 RUN curl -L https://iterm2.com/shell_integration/install_shell_integration_and_utilities.sh | bash
 RUN cd ~ && git clone https://github.com/gpakosz/.tmux.git && \
     ln -s -f .tmux/.tmux.conf && \
