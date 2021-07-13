@@ -65,7 +65,7 @@ RUN set -eux; \
     nodejs yarn vim-nox neovim python-neovim python3-neovim xxd wamerican \
     build-essential gcc g++ make cmake autoconf automake patch gdb libtool cpp pkg-config libc6-dev libncurses-dev sqlite sqlite3 openssl unixodbc pkg-config re2c keyboard-configuration bzip2 unzip p7zip unrar-free git-core mercurial wget curl nano vim lsof ctags vim-doc vim-scripts ed gawk screen tmux valgrind graphviz graphviz-dev xsel xclip mc urlview tree tofrodos proxychains privoxy socat zhcon supervisor certbot lrzsz mc htop iftop iotop nethogs dstat multitail tig jq ncdu ranger silversearcher-ag asciinema software-properties-common libxml2-dev libbz2-dev libexpat1-dev libssl-dev libffi-dev libsecret-1-dev libgconf2-4 libdb-dev libgmp3-dev zlib1g-dev linux-libc-dev libgudev-1.0-dev uuid-dev libpng-dev libjpeg-dev libfreetype6-dev libxslt1-dev libssh-dev libssh2-1-dev libpcre3-dev libpcre++-dev libmhash-dev libmcrypt-dev libltdl7-dev mcrypt libiconv-hook-dev libsqlite-dev libgettextpo0 libwrap0-dev libreadline-dev zookeeper zookeeper-bin libzookeeper-mt-dev gnupg2 pass rng-tools software-properties-common ruby ruby-dev python python-dev python-pip python-setuptools python-lxml python3 python3-dev python3-pip python3-setuptools python3-venv python3-lxml openjdk-8-jdk maven
 RUN mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
-    mkdir -p ~/{.ssh,.local,.config,.m2,.yarn,.composer,.aria2} && \
+    mkdir -p ~/{.ssh,.local,.config,.cache,.m2,.yarn,.npm,.node-gyp,.composer,.aria2} && \
     mkdir -p ~/Downloads/temp && \
     ln -nfs /data/app ~/Code
 
@@ -138,7 +138,7 @@ bind C-g send-prefix \n\
 USER ${USER_NAME}
 WORKDIR ${HOMEPATH}
 RUN mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
-    mkdir -p ~/{.ssh,.local,.config,.m2,.yarn,.composer,.aria2} && \
+    mkdir -p ~/{.ssh,.local,.config,.cache,.m2,.yarn,.npm,.node-gyp,.composer,.aria2} && \
     mkdir -p ~/.local/share/fonts && \
     mkdir -p ~/Downloads/temp && \
     ln -nfs /data/app ~/Code && \
@@ -175,13 +175,18 @@ RUN /home/${USER_NAME}/miniconda3/bin/conda init zsh && . ~/.zshrc && conda upda
     conda activate ${CONDA_ENV_NAME} && \
     echo "source /home/${USER_NAME}/miniconda3/bin/activate ${CONDA_ENV_NAME}" >> ~/.zshrc && \
     source /home/${USER_NAME}/miniconda3/bin/activate ${CONDA_ENV_NAME}
-RUN /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin/pip install -U pip setuptools wheel six pqi && \
-    /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin/npm install -g nrm yrm cnpm cyarn pm2@latest typescript npm-check @vue/cli @vue/cli-service-global @vue/cli-init
+RUN /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin/pip install -U pip setuptools wheel six pqi
+USER root
+RUN ln -nfs /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin/node /usr/local/bin/
+USER ${USER_NAME}
+RUN /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin/npm install -g nrm yrm cnpm cyarn pm2@latest typescript npm-check @vue/cli @vue/cli-service-global @vue/cli-init
 USER root
 RUN env PATH=$PATH:/home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/lib/node_modules/pm2/bin/pm2 startup upstart -u ${USER_NAME} --hp /home/${USER_NAME}
 COPY customize.sh ${HOMEPATH}/customize.sh
 RUN chmod +x ${HOMEPATH}/customize.sh && chown ${USER_NAME}:${USER_NAME} ${HOMEPATH}/customize.sh
 USER ${USER_NAME}
+RUN /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin/pm2 update && /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin/pm2 completion install && /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin/pm2 install pm2-logrotate &&
+    curl -sLf https://spacevim.org/install.sh | bash
 RUN ${HOMEPATH}/customize.sh --install-cronjob
 
 USER root
