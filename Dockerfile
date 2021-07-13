@@ -137,7 +137,7 @@ report_errors: false \n\
 channels: \n\
   - defaults \n\
   - conda-forge \n\
-' >> ~/.condarc
+' > ~/.condarc
 RUN /home/${USER_NAME}/miniconda3/bin/conda init zsh && . ~/.zshrc && conda update -y -n base -c defaults conda && conda create -y --name ${CONDA_ENV_NAME} python=${CONDA_ENV_PY_VER} && conda activate ${CONDA_ENV_NAME} && \
     conda install -y -n ${CONDA_ENV_NAME} pip setuptools wheel && \
     conda install -y -n ${CONDA_ENV_NAME} -c conda-forge nodejs=12 yarn=1.22 && \
