@@ -3,6 +3,23 @@ LABEL maintainer="Nick Fan <nickfan81@gmail.com>"
 ENV HOME /home/www
 ENV HOMEPATH /home/www
 
+RUN addgroup www && adduser --gecos "" --ingroup www --disabled-password www
+USER root
+RUN mkdir -p /data/{app/{backup,etc,tmp,certs,www,ops,downloads/temp},var/{log/app,run,tmp}} && \
+    ln -nfs /data/var /data/app/var && \
+    chown -R www:www /data/app && \
+    chown -R www:www /data/var && \
+    ln -nfs /home/www /home/user && \
+    ln -nfs /data/app /data/wwwroot && \
+    ln -nfs /data/var/log /data/wwwlogs && \
+    ln -nfs /data/app /home/wwwroot && \
+    ln -nfs /data/var/log /home/wwwlogs && \
+    ln -nfs /home /Users
+RUN mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
+    mkdir -p ~/{.local,.config,.yarn,.composer,.aria2} && \
+    mkdir -p ~/Downloads/temp && \
+    ln -nfs /data/app ~/Code
+
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
@@ -21,25 +38,41 @@ RUN mkdir -p ~/setup && cd ~/setup && \
     wget https://github.com/sharkdp/bat/releases/download/v0.17.1/bat_0.17.1_amd64.deb && \
     dpkg -i bat_0.17.1_amd64.deb
 
-RUN rm -rf /var/lib/apt/lists/*;
+RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.1/zsh-in-docker.sh)" -- \
+#    -t powerlevel10k/powerlevel10k \
+    -p git \
+    -p ssh-agent \
+    -p z \
+    -p autojump \
+    -p history \
+    -p last-working-dir \
+    -p docker \
+    -p github \
+    -p httpie \
+    -p jsontools \
+    -p node \
+    -p npm \
+    -p golang \
+    -p tmux \
+    -p tmuxinator \
+    -p catimg \
+    -p https://github.com/zsh-users/zsh-autosuggestions \
+    -p https://github.com/zsh-users/zsh-completions \
+    -p https://github.com/zsh-users/zsh-syntax-highlighting \
+    -a 'export ZSH_DISABLE_COMPFIX=true' \
+    -a 'HIST_STAMPS="yyyy-mm-dd"' \
+    -a 'autoload -U compinit && compinit' \
+    -a 'export ZSH_TMUX_AUTOSTART=false' \
+    -a 'export ZSH_TMUX_AUTOCONNECT=false' \
+    -a 'zstyle :omz:plugins:ssh-agent agent-forwarding on' \
+    -a 'if [ -f \$HOME/.myenvset ]; then source \$HOME/.myenvset;fi' \
+    -a '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh' \
+    -a 'if [ "\$TERM" = "xterm-256color" ] && [ -z "\$INSIDE_EMACS" ]; then test -e "\${HOME}/.iterm2_shell_integration.zsh" && source "\${HOME}/.iterm2_shell_integration.zsh";fi'
 
-RUN addgroup www && adduser --gecos "" --ingroup www --disabled-password www
 USER www
 WORKDIR ${HOMEPATH}
-USER root
-RUN mkdir -p /data/{app/{backup,etc,tmp,certs,www,ops,downloads/temp},var/{log/app,run,tmp}} && \
-    ln -nfs /data/var /data/app/var && \
-    chown -R www:www /data/app && \
-    chown -R www:www /data/var && \
-    ln -nfs /home/www /home/user && \
-    ln -nfs /data/app /data/wwwroot && \
-    ln -nfs /data/var/log /data/wwwlogs && \
-    ln -nfs /data/app /home/wwwroot && \
-    ln -nfs /data/var/log /home/wwwlogs && \
-    ln -nfs /home /Users
-USER www
 RUN mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
-    mkdir -p ~/{.config,.yarn,.composer,.aria2} && \
+    mkdir -p ~/{.local,.config,.yarn,.composer,.aria2} && \
     mkdir -p ~/Downloads/temp && \
     ln -nfs /data/app ~/Code
 
@@ -73,8 +106,8 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
     -a 'export ZSH_TMUX_AUTOSTART=false' \
     -a 'export ZSH_TMUX_AUTOCONNECT=false' \
     -a 'zstyle :omz:plugins:ssh-agent agent-forwarding on' \
-    -a 'if [ -f \$HOME/.myenvset ]; then source \$HOME/.myenvset;fi'
-    -a '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh'
+    -a 'if [ -f \$HOME/.myenvset ]; then source \$HOME/.myenvset;fi' \
+    -a '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh' \
     -a 'if [ "\$TERM" = "xterm-256color" ] && [ -z "\$INSIDE_EMACS" ]; then test -e "\${HOME}/.iterm2_shell_integration.zsh" && source "\${HOME}/.iterm2_shell_integration.zsh";fi'
 
 RUN cd ~ && git clone https://github.com/gpakosz/.tmux.git && \
@@ -85,3 +118,9 @@ RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && ~/.fzf/ins
 
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
     bash ~/miniconda.sh -b -p $HOME/miniconda
+
+USER root
+RUN rm -rf /var/lib/apt/lists/*;
+RUN rm -rf ~/setup/*;
+USER www
+RUN rm -rf ~/setup/*;
