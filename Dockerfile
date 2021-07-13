@@ -31,6 +31,7 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends \
     sudo net-tools iputils-ping iproute2 telnet curl wget nano procps traceroute iperf3 language-pack-en-base language-pack-zh-hans \
     zsh autojump fonts-powerline xfonts-75dpi xfonts-base xfonts-encodings xfonts-utils fonts-wqy-microhei fonts-wqy-zenhei xfonts-wqy && \
+    chsh -s /bin/zsh root && \
     addgroup ${USER_NAME} && adduser --quiet --disabled-password --shell /bin/zsh --ingroup ${USER_NAME} --home /home/${USER_NAME} --gecos "User" ${USER_NAME} && \
     echo "${USER_NAME}:${USER_PASSWORD}" | chpasswd && usermod -aG sudo ${USER_NAME} && usermod -aG adm ${USER_NAME} && usermod -aG www-data ${USER_NAME} && \
     sed -i -E "s/^Defaults env_reset/Defaults env_reset, timestamp_timeout=-1/g" /etc/sudoers && \
@@ -90,9 +91,12 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
     -a 'export ZSH_TMUX_AUTOSTART=false' \
     -a 'export ZSH_TMUX_AUTOCONNECT=false' \
     -a 'zstyle :omz:plugins:ssh-agent agent-forwarding on' \
-    -a 'if [ -f \$HOME/.myenvset ]; then source \$HOME/.myenvset;fi' \
+    -a 'if [ -f $HOME/.myenvset ]; then source $HOME/.myenvset;fi' \
     -a '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh' \
-    -a 'if [ "\$TERM" = "xterm-256color" ] && [ -z "\$INSIDE_EMACS" ]; then test -e "\${HOME}/.iterm2_shell_integration.zsh" && source "\${HOME}/.iterm2_shell_integration.zsh";fi'
+    -a 'if [ "$TERM" = "xterm-256color" ] && [ -z "$INSIDE_EMACS" ]; then test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh";fi'
+
+RUN cp -af /root/.oh-my-zsh /home/${USER_NAME}/ && cp -af /root/.zshrc /home/${USER_NAME}/ && sed -i 's/root/home\/${USER_NAME}/g' /home/${USER_NAME}/.zshrc && \
+    chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.oh-my-zsh && chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.zshrc
 
 RUN cd ~ && git clone https://github.com/gpakosz/.tmux.git && \
     ln -s -f .tmux/.tmux.conf && \
@@ -100,8 +104,8 @@ RUN cd ~ && git clone https://github.com/gpakosz/.tmux.git && \
 
 RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && ~/.fzf/install
 
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
-    bash ~/miniconda.sh -b -p /root/miniconda
+#RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
+#    bash ~/miniconda.sh -b -p /root/miniconda
 
 USER ${USER_NAME}
 WORKDIR ${HOMEPATH}
@@ -115,36 +119,6 @@ USER root
 RUN chmod +x ${HOMEPATH}/customize.sh && chown ${USER_NAME}:${USER_NAME} ${HOMEPATH}/customize.sh
 USER ${USER_NAME}
 RUN ${HOMEPATH}/customize.sh --install-cronjob
-
-#RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.1/zsh-in-docker.sh)" -- \
-##    -t powerlevel10k/powerlevel10k \
-#    -p git \
-#    -p ssh-agent \
-#    -p z \
-#    -p autojump \
-#    -p history \
-#    -p last-working-dir \
-#    -p docker \
-#    -p github \
-#    -p jsontools \
-#    -p node \
-#    -p npm \
-#    -p golang \
-#    -p tmux \
-#    -p tmuxinator \
-#    -p catimg \
-#    -p https://github.com/zsh-users/zsh-autosuggestions \
-#    -p https://github.com/zsh-users/zsh-completions \
-#    -p https://github.com/zsh-users/zsh-syntax-highlighting \
-#    -a 'export ZSH_DISABLE_COMPFIX=true' \
-#    -a 'HIST_STAMPS="yyyy-mm-dd"' \
-#    -a 'autoload -U compinit && compinit' \
-#    -a 'export ZSH_TMUX_AUTOSTART=false' \
-#    -a 'export ZSH_TMUX_AUTOCONNECT=false' \
-#    -a 'zstyle :omz:plugins:ssh-agent agent-forwarding on' \
-#    -a 'if [ -f \$HOME/.myenvset ]; then source \$HOME/.myenvset;fi' \
-#    -a '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh' \
-#    -a 'if [ "\$TERM" = "xterm-256color" ] && [ -z "\$INSIDE_EMACS" ]; then test -e "\${HOME}/.iterm2_shell_integration.zsh" && source "\${HOME}/.iterm2_shell_integration.zsh";fi'
 
 RUN cd ~ && git clone https://github.com/gpakosz/.tmux.git && \
     ln -s -f .tmux/.tmux.conf && \
