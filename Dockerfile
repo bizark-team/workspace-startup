@@ -35,7 +35,7 @@ SHELL ["/bin/bash", "-c"]
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
-    sudo net-tools iputils-ping iproute2 telnet curl wget nano procps traceroute iperf3 gnupg-agent apt-transport-https ca-certificates openssh-client openssh-server ntp ntpdate language-pack-en-base language-pack-zh-hans \
+    sudo net-tools iputils-ping iproute2 telnet curl wget nano procps traceroute iperf3 gnupg-agent apt-transport-https ca-certificates software-properties-common openssh-client openssh-server ntp ntpdate language-pack-en-base language-pack-zh-hans \
     zsh autojump fonts-powerline xfonts-75dpi xfonts-base xfonts-encodings xfonts-utils fonts-wqy-microhei fonts-wqy-zenhei xfonts-wqy && \
     chsh -s /bin/zsh root && \
     addgroup ${USER_NAME} && adduser --quiet --disabled-password --shell /bin/zsh --ingroup ${USER_NAME} --home /home/${USER_NAME} --gecos "User" ${USER_NAME} && \
