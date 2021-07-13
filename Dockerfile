@@ -5,8 +5,8 @@ ENV HOMEPATH /home/www
 
 RUN addgroup www && adduser --gecos "" --ingroup www --disabled-password www
 USER root
-RUN mkdir -p /data/{app/{backup,etc,tmp,certs,www,ops,downloads/temp},var/{log/app,run,tmp}} && \
-    ln -nfs /data/var /data/app/var && \
+RUN mkdir -p /data/{app/{backup,etc,tmp,certs,www,ops,downloads/temp},var/{log/app,run,tmp}}
+RUN ln -nfs /data/var /data/app/var && \
     chown -R www:www /data/app && \
     chown -R www:www /data/var && \
     ln -nfs /home/www /home/user && \
