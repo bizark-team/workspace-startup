@@ -138,21 +138,31 @@ channels: \n\
   - defaults \n\
   - conda-forge \n\
 ' > ~/.condarc
-RUN /home/${USER_NAME}/miniconda3/bin/conda init zsh && . ~/.zshrc && conda update -y -n base -c defaults conda && conda create -y --name ${CONDA_ENV_NAME} python=${CONDA_ENV_PY_VER} && conda activate ${CONDA_ENV_NAME} && \
+RUN /home/${USER_NAME}/miniconda3/bin/conda init zsh && . ~/.zshrc && conda update -y -n base -c defaults conda && conda create -y --name ${CONDA_ENV_NAME} python=${CONDA_ENV_PY_VER} && \
     conda install -y -n ${CONDA_ENV_NAME} pip setuptools wheel && \
     conda install -y -n ${CONDA_ENV_NAME} -c conda-forge nodejs=12 yarn=1.22 && \
+    conda activate ${CONDA_ENV_NAME} && \
     echo "source /home/${USER_NAME}/miniconda3/bin/activate ${CONDA_ENV_NAME}" >> ~/.zshrc
-RUN pip install -U pip setuptools wheel six pqi && npm install -g nrm yrm cnpm cyarn pm2@latest typescript npm-check @vue/cli @vue/cli-service-global @vue/cli-init
-
-COPY customize.sh ${HOMEPATH}/customize.sh
+RUN /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin/pip install -U pip setuptools wheel six pqi && /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin/npm install -g nrm yrm cnpm cyarn pm2@latest typescript npm-check @vue/cli @vue/cli-service-global @vue/cli-init
 USER root
+RUN env PATH=$PATH:/home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/lib/node_modules/pm2/bin/pm2 startup upstart -u ${USER_NAME} --hp /home/${USER_NAME}
+COPY customize.sh ${HOMEPATH}/customize.sh
 RUN chmod +x ${HOMEPATH}/customize.sh && chown ${USER_NAME}:${USER_NAME} ${HOMEPATH}/customize.sh
 USER ${USER_NAME}
 RUN ${HOMEPATH}/customize.sh --install-cronjob
 
 USER root
 RUN rm -rf /var/lib/apt/lists/* && rm -rf ~/setup/* && rm -rf ~/miniconda.sh
+RUN printf "%b" '#!'"/usr/bin/env sh\n \
+if [ \"\$1\" = \"daemon\" ];  then \n \
+ trap \"echo stop && killall crond && exit 0\" SIGTERM SIGINT \n \
+ crond && while true; do sleep 1; done;\n \
+else \n \
+ exec \$@ \n \
+fi" >/entry.sh && chmod +x /entry.sh
+
 USER ${USER_NAME}
 RUN rm -rf ~/setup/* && rm -rf ~/miniconda.sh
-
-CMD [ "zsh" ]
+VOLUME ["/data/app"]
+ENTRYPOINT ["/entry.sh"]
+CMD ["zsh"]
