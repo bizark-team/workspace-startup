@@ -58,9 +58,10 @@ RUN set -eux; \
 RUN curl -fsSL https://deb.nodesource.com/setup_12.x | bash -
 RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/yarnkey.gpg >/dev/null
 RUN echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+RUN add-apt-repository ppa:neovim-ppa/stable
 RUN set -eux; \
     apt-get install -y --no-install-recommends \
-    nodejs yarn
+    nodejs yarn vim-nox neovim python-neovim python3-neovim xxd wamerican \
     build-essential gcc g++ make cmake autoconf automake patch gdb libtool cpp pkg-config libc6-dev libncurses-dev sqlite sqlite3 openssl unixodbc pkg-config re2c keyboard-configuration bzip2 unzip p7zip unrar-free git-core mercurial wget curl nano vim lsof ctags vim-doc vim-scripts ed gawk screen tmux valgrind graphviz graphviz-dev xsel xclip mc urlview tree tofrodos proxychains privoxy socat zhcon supervisor certbot lrzsz mc htop iftop iotop nethogs dstat multitail tig jq ncdu ranger silversearcher-ag asciinema software-properties-common libxml2-dev libbz2-dev libexpat1-dev libssl-dev libffi-dev libsecret-1-dev libgconf2-4 libdb-dev libgmp3-dev zlib1g-dev linux-libc-dev libgudev-1.0-dev uuid-dev libpng-dev libjpeg-dev libfreetype6-dev libxslt1-dev libssh-dev libssh2-1-dev libpcre3-dev libpcre++-dev libmhash-dev libmcrypt-dev libltdl7-dev mcrypt libiconv-hook-dev libsqlite-dev libgettextpo0 libwrap0-dev libreadline-dev zookeeper zookeeper-bin libzookeeper-mt-dev gnupg2 pass rng-tools software-properties-common ruby ruby-dev python python-dev python-pip python-setuptools python-lxml python3 python3-dev python3-pip python3-setuptools python3-venv python3-lxml openjdk-8-jdk maven \
 RUN mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
     mkdir -p ~/{.ssh,.local,.config,.m2,.yarn,.composer,.aria2} && \
@@ -137,12 +138,23 @@ USER ${USER_NAME}
 WORKDIR ${HOMEPATH}
 RUN mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
     mkdir -p ~/{.ssh,.local,.config,.m2,.yarn,.composer,.aria2} && \
+    mkdir -p ~/.local/share/fonts && \
     mkdir -p ~/Downloads/temp && \
-    ln -nfs /data/app ~/Code
+    ln -nfs /data/app ~/Code && \
+    cd ~/tmp && \
+    git clone https://github.com/powerline/fonts.git --depth=1 && \
+    cd ~/tmp/fonts && \
+    ./install.sh && \
+    cd ~/.local/share/fonts && rm -rf ~/tmp/fonts && \
+    wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.0.0/Hack.zip && \
+    unzip Hack.zip && \
+    rm -rf Hack.zip && \
+    fc-cache -vf && \
 
 RUN sed -i -E "/\.myenvset/d" ${HOMEPATH}/.profile && \
     echo "if [ -f $HOME/.myenvset ]; then source $HOME/.myenvset;fi" >> ${HOMEPATH}/.profile && \
     cp -n /usr/share/maven/conf/settings.xml ~/.m2/
+RUN
 RUN curl -L https://iterm2.com/shell_integration/install_shell_integration_and_utilities.sh | bash
 RUN cd ~ && git clone https://github.com/gpakosz/.tmux.git && \
     ln -s -f .tmux/.tmux.conf && \
