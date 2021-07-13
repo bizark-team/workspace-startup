@@ -29,7 +29,7 @@ SHELL ["/bin/bash", "-c"]
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
-    sudo net-tools iputils-ping iproute2 telnet curl wget nano procps traceroute iperf3 language-pack-en-base language-pack-zh-hans \
+    sudo net-tools iputils-ping iproute2 telnet curl wget nano procps traceroute iperf3 openssh-client openssh-server language-pack-en-base language-pack-zh-hans \
     zsh autojump fonts-powerline xfonts-75dpi xfonts-base xfonts-encodings xfonts-utils fonts-wqy-microhei fonts-wqy-zenhei xfonts-wqy && \
     chsh -s /bin/zsh root && \
     addgroup ${USER_NAME} && adduser --quiet --disabled-password --shell /bin/zsh --ingroup ${USER_NAME} --home /home/${USER_NAME} --gecos "User" ${USER_NAME} && \
@@ -47,7 +47,7 @@ RUN set -eux; \
     ln -nfs /data/var/log /home/wwwlogs && \
     ln -nfs /home /Users
 RUN mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
-    mkdir -p ~/{.local,.config,.yarn,.composer,.aria2} && \
+    mkdir -p ~/{.ssh,.local,.config,.yarn,.composer,.aria2} && \
     mkdir -p ~/Downloads/temp && \
     ln -nfs /data/app ~/Code
 
@@ -110,7 +110,7 @@ RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && ~/.fzf/ins
 USER ${USER_NAME}
 WORKDIR ${HOMEPATH}
 RUN mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
-    mkdir -p ~/{.local,.config,.yarn,.composer,.aria2} && \
+    mkdir -p ~/{.ssh,.local,.config,.yarn,.composer,.aria2} && \
     mkdir -p ~/Downloads/temp && \
     ln -nfs /data/app ~/Code
 
