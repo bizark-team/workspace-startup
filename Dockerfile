@@ -35,7 +35,7 @@ SHELL ["/bin/bash", "-c"]
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
-    sudo net-tools iputils-ping iproute2 telnet curl wget nano procps traceroute iperf3 openssh-client openssh-server language-pack-en-base language-pack-zh-hans \
+    sudo net-tools iputils-ping iproute2 telnet curl wget nano procps traceroute iperf3 gnupg-agent apt-transport-https ca-certificates openssh-client openssh-server ntp ntpdate language-pack-en-base language-pack-zh-hans \
     zsh autojump fonts-powerline xfonts-75dpi xfonts-base xfonts-encodings xfonts-utils fonts-wqy-microhei fonts-wqy-zenhei xfonts-wqy && \
     chsh -s /bin/zsh root && \
     addgroup ${USER_NAME} && adduser --quiet --disabled-password --shell /bin/zsh --ingroup ${USER_NAME} --home /home/${USER_NAME} --gecos "User" ${USER_NAME} && \
@@ -43,6 +43,7 @@ RUN set -eux; \
     sed -i -E "s/^Defaults env_reset/Defaults env_reset, timestamp_timeout=-1/g" /etc/sudoers && \
     sed -i -E "/\.myenvset/d" /root/.profile && \
     echo "if [ -f $HOME/.myenvset ]; then source $HOME/.myenvset;fi" >> /root/.profile && \
+    echo 'JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"' >> /etc/environment && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
     mkdir -p /data/{app/{backup,etc,tmp,certs,www,ops,downloads/temp},var/{log/app,run,tmp}} && \
     ln -nfs /data/var /data/app/var && \
@@ -54,15 +55,18 @@ RUN set -eux; \
     ln -nfs /data/app /home/wwwroot && \
     ln -nfs /data/var/log /home/wwwlogs && \
     ln -nfs /home /Users
+RUN curl -fsSL https://deb.nodesource.com/setup_12.x | bash -
+RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/yarnkey.gpg >/dev/null
+RUN echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+RUN set -eux; \
+    apt-get install -y --no-install-recommends \
+    nodejs yarn
+    build-essential gcc g++ make cmake autoconf automake patch gdb libtool cpp pkg-config libc6-dev libncurses-dev sqlite sqlite3 openssl unixodbc pkg-config re2c keyboard-configuration bzip2 unzip p7zip unrar-free git-core mercurial wget curl nano vim lsof ctags vim-doc vim-scripts ed gawk screen tmux valgrind graphviz graphviz-dev xsel xclip mc urlview tree tofrodos proxychains privoxy socat zhcon supervisor certbot lrzsz mc htop iftop iotop nethogs dstat multitail tig jq ncdu ranger silversearcher-ag asciinema software-properties-common libxml2-dev libbz2-dev libexpat1-dev libssl-dev libffi-dev libsecret-1-dev libgconf2-4 libdb-dev libgmp3-dev zlib1g-dev linux-libc-dev libgudev-1.0-dev uuid-dev libpng-dev libjpeg-dev libfreetype6-dev libxslt1-dev libssh-dev libssh2-1-dev libpcre3-dev libpcre++-dev libmhash-dev libmcrypt-dev libltdl7-dev mcrypt libiconv-hook-dev libsqlite-dev libgettextpo0 libwrap0-dev libreadline-dev zookeeper zookeeper-bin libzookeeper-mt-dev gnupg2 pass rng-tools software-properties-common ruby ruby-dev python python-dev python-pip python-setuptools python-lxml python3 python3-dev python3-pip python3-setuptools python3-venv python3-lxml openjdk-8-jdk maven \
 RUN mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
-    mkdir -p ~/{.ssh,.local,.config,.yarn,.composer,.aria2} && \
+    mkdir -p ~/{.ssh,.local,.config,.m2,.yarn,.composer,.aria2} && \
     mkdir -p ~/Downloads/temp && \
     ln -nfs /data/app ~/Code
 
-RUN set -eux; \
-    apt-get install -y --no-install-recommends \
-    build-essential gcc g++ make cmake autoconf automake patch gdb libtool cpp pkg-config libc6-dev libncurses-dev sqlite sqlite3 openssl unixodbc pkg-config re2c keyboard-configuration bzip2 unzip p7zip unrar-free git-core mercurial wget curl nano vim lsof ctags vim-doc vim-scripts ed gawk screen tmux valgrind graphviz graphviz-dev xsel xclip mc urlview tree tofrodos proxychains privoxy socat zhcon supervisor certbot lrzsz mc htop iftop iotop nethogs dstat multitail tig jq ncdu ranger silversearcher-ag asciinema software-properties-common libxml2-dev libbz2-dev libexpat1-dev libssl-dev libffi-dev libsecret-1-dev libgconf2-4 libdb-dev libgmp3-dev zlib1g-dev linux-libc-dev libgudev-1.0-dev uuid-dev libpng-dev libjpeg-dev libfreetype6-dev libxslt1-dev libssh-dev libssh2-1-dev libpcre3-dev libpcre++-dev libmhash-dev libmcrypt-dev libltdl7-dev mcrypt libiconv-hook-dev libsqlite-dev libgettextpo0 libwrap0-dev libreadline-dev zookeeper zookeeper-bin libzookeeper-mt-dev ruby ruby-dev python python-dev python-pip python-setuptools python-lxml python3 python3-dev python3-pip python3-setuptools python3-venv python3-lxml \
-	;
 RUN mkdir -p ~/setup && cd ~/setup && \
     wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.bionic_amd64.deb && \
     dpkg -i wkhtmltox_0.12.6-1.bionic_amd64.deb && \
@@ -109,6 +113,21 @@ RUN cp -af /root/.oh-my-zsh /home/${USER_NAME}/ && cp -af /root/.zshrc /home/${U
 RUN cd ~ && git clone https://github.com/gpakosz/.tmux.git && \
     ln -s -f .tmux/.tmux.conf && \
     cp .tmux/.tmux.conf.local . && \
+    sed -i -E '/^# -- clipboard/,$d' ~/.tmux.conf.local && \
+    echo $' \n\
+tmux_conf_copy_to_os_clipboard=true \n\
+bind - splitw -v # vertical split (prefix -)  \n\
+bind | splitw -h # horizontal split (prefix |)  \n\
+tmux_conf_theme_24b_colour=true \n\
+set -g history-limit 10000 \n\
+set -g mouse on \n\
+set -gu prefix2 \n\
+unbind C-a \n\
+unbind C-b \n\
+set -g prefix C-g \n\
+bind C-g send-prefix \n\
+' >> ~/.tmux.conf.local && \
+    cp -af /root/.tmux.conf.local /home/${USER_NAME}/ && chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.tmux.conf.local && \
     git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && ~/.fzf/install
 
 #RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
@@ -117,12 +136,13 @@ RUN cd ~ && git clone https://github.com/gpakosz/.tmux.git && \
 USER ${USER_NAME}
 WORKDIR ${HOMEPATH}
 RUN mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
-    mkdir -p ~/{.ssh,.local,.config,.yarn,.composer,.aria2} && \
+    mkdir -p ~/{.ssh,.local,.config,.m2,.yarn,.composer,.aria2} && \
     mkdir -p ~/Downloads/temp && \
     ln -nfs /data/app ~/Code
 
 RUN sed -i -E "/\.myenvset/d" ${HOMEPATH}/.profile && \
-    echo "if [ -f $HOME/.myenvset ]; then source $HOME/.myenvset;fi" >> ${HOMEPATH}/.profile
+    echo "if [ -f $HOME/.myenvset ]; then source $HOME/.myenvset;fi" >> ${HOMEPATH}/.profile && \
+    cp -n /usr/share/maven/conf/settings.xml ~/.m2/
 RUN curl -L https://iterm2.com/shell_integration/install_shell_integration_and_utilities.sh | bash
 RUN cd ~ && git clone https://github.com/gpakosz/.tmux.git && \
     ln -s -f .tmux/.tmux.conf && \
