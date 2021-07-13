@@ -1,11 +1,21 @@
+# syntax = docker/dockerfile:experimental
+ARG DEBIAN_FRONTEND=noninteractive
+ARG TZ=etc/UTC
+
 FROM ubuntu:18.04
 LABEL maintainer="Nick Fan <nickfan81@gmail.com>"
+ARG DEBIAN_FRONTEND
+ARG TZ
+ENV TZ=${TZ}
+ENV DEBIAN_FRONTEND=${DEBIAN_FRONTEND}
+
 ENV HOME /home/www
 ENV HOMEPATH /home/www
 SHELL ["/bin/bash", "-c"]
 
 RUN addgroup www && adduser --gecos "" --ingroup www --disabled-password www
 USER root
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN mkdir -p /data/{app/{backup,etc,tmp,certs,www,ops,downloads/temp},var/{log/app,run,tmp}} && \
     ln -nfs /data/var /data/app/var && \
     chown -R www:www /data/app && \
