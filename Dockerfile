@@ -142,8 +142,10 @@ RUN /home/${USER_NAME}/miniconda3/bin/conda init zsh && . ~/.zshrc && conda upda
     conda install -y -n ${CONDA_ENV_NAME} pip setuptools wheel && \
     conda install -y -n ${CONDA_ENV_NAME} -c conda-forge nodejs=12 yarn=1.22 && \
     conda activate ${CONDA_ENV_NAME} && \
-    echo "source /home/${USER_NAME}/miniconda3/bin/activate ${CONDA_ENV_NAME}" >> ~/.zshrc
-RUN /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin/pip install -U pip setuptools wheel six pqi && /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin/npm install -g nrm yrm cnpm cyarn pm2@latest typescript npm-check @vue/cli @vue/cli-service-global @vue/cli-init
+    echo "source /home/${USER_NAME}/miniconda3/bin/activate ${CONDA_ENV_NAME}" >> ~/.zshrc && \
+    source /home/${USER_NAME}/miniconda3/bin/activate ${CONDA_ENV_NAME}
+RUN /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin/pip install -U pip setuptools wheel six pqi && \
+    /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin/npm install -g nrm yrm cnpm cyarn pm2@latest typescript npm-check @vue/cli @vue/cli-service-global @vue/cli-init
 USER root
 RUN env PATH=$PATH:/home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/lib/node_modules/pm2/bin/pm2 startup upstart -u ${USER_NAME} --hp /home/${USER_NAME}
 COPY customize.sh ${HOMEPATH}/customize.sh
