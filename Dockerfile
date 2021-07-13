@@ -112,7 +112,7 @@ RUN cd ~ && git clone https://github.com/gpakosz/.tmux.git && \
     git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && ~/.fzf/install
 
 #RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
-#    bash ~/miniconda.sh -b -p /root/miniconda
+#    bash ~/miniconda.sh -b -p /root/miniconda3
 
 USER ${USER_NAME}
 WORKDIR ${HOMEPATH}
@@ -129,7 +129,7 @@ RUN cd ~ && git clone https://github.com/gpakosz/.tmux.git && \
     cp .tmux/.tmux.conf.local . && \
     git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && ~/.fzf/install && \
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
-    bash ~/miniconda.sh -b -p ${HOME}/miniconda
+    bash ~/miniconda.sh -b -p ${HOME}/miniconda3
 RUN /home/${USER_NAME}/miniconda3/bin/conda init zsh && . ~/.zshrc && conda update -y -n base -c defaults conda && conda create -y --name ${CONDA_ENV_NAME} python=${CONDA_ENV_PY_VER} && conda activate ${CONDA_ENV_NAME} conda install -y -n ${CONDA_ENV_NAME} pip setuptools wheel nodejs=12 yarn=1.22 && \
     echo "source /home/${USER_NAME}/miniconda3/bin/activate ${CONDA_ENV_NAME}" >> ~/.zshrc
 RUN pip install -U pip setuptools wheel six pqi && npm install -g nrm yrm cnpm cyarn pm2@latest typescript npm-check @vue/cli @vue/cli-service-global @vue/cli-init
