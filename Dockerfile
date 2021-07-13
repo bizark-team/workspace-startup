@@ -59,7 +59,6 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
     -p last-working-dir \
     -p docker \
     -p github \
-    -p httpie \
     -p jsontools \
     -p node \
     -p npm \
@@ -100,7 +99,6 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
     -p last-working-dir \
     -p docker \
     -p github \
-    -p httpie \
     -p jsontools \
     -p node \
     -p npm \
