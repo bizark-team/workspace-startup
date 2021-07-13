@@ -1,4 +1,9 @@
 # syntax = docker/dockerfile:experimental
+ARG USER_NAME="www"
+ARG USER_PASSWORD="abc123"
+#ARG ZSH_THEME="ys"
+ARG ZSH_THEME="powerlevel10k"
+ARG TERM="xterm-256color"
 ARG DEBIAN_FRONTEND=noninteractive
 ARG TZ=etc/UTC
 
@@ -8,19 +13,32 @@ ARG DEBIAN_FRONTEND
 ARG TZ
 ENV TZ=${TZ}
 ENV DEBIAN_FRONTEND=${DEBIAN_FRONTEND}
+ARG USER_NAME
+ARG USER_PASSWORD
+ENV USER_NAME=${USER_NAME}
+ENV USER_PASSWORD=${USER_PASSWORD}
+ARG TERM
+ENV TERM=${TERM}
+ARG ZSH_THEME
+ENV ZSH_THEME=${ZSH_THEME}
 
-ENV HOME /home/www
-ENV HOMEPATH /home/www
+ENV HOME /home/${USER_NAME}
+ENV HOMEPATH /home/${USER_NAME}
 SHELL ["/bin/bash", "-c"]
 
-RUN addgroup www && adduser --gecos "" --ingroup www --disabled-password www
-USER root
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-RUN mkdir -p /data/{app/{backup,etc,tmp,certs,www,ops,downloads/temp},var/{log/app,run,tmp}} && \
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+    sudo net-tools iputils-ping iproute2 telnet curl wget nano procps traceroute iperf3 language-pack-en-base language-pack-zh-hans \
+    zsh autojump fonts-powerline xfonts-75dpi xfonts-base xfonts-encodings xfonts-utils fonts-wqy-microhei fonts-wqy-zenhei xfonts-wqy && \
+    addgroup ${USER_NAME} && adduser --quiet --disabled-password --shell /bin/zsh --ingroup ${USER_NAME} --home /home/$USER_NAME --gecos "User" $USER_NAME && \
+    echo "${USER_NAME}:${USER_PASSWORD}" | chpasswd && usermod -aG sudo $USER_NAME && \
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+    mkdir -p /data/{app/{backup,etc,tmp,certs,www,ops,downloads/temp},var/{log/app,run,tmp}} && \
     ln -nfs /data/var /data/app/var && \
-    chown -R www:www /data/app && \
-    chown -R www:www /data/var && \
-    ln -nfs /home/www /home/user && \
+    chown -R ${USER_NAME}:${USER_NAME} /data/app && \
+    chown -R ${USER_NAME}:${USER_NAME} /data/var && \
+    ln -nfs /home/${USER_NAME} /home/user && \
     ln -nfs /data/app /data/wwwroot && \
     ln -nfs /data/var/log /data/wwwlogs && \
     ln -nfs /data/app /home/wwwroot && \
@@ -32,12 +50,8 @@ RUN mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
     ln -nfs /data/app ~/Code
 
 RUN set -eux; \
-    apt-get update; \
     apt-get install -y --no-install-recommends \
-    sudo net-tools iputils-ping iproute2 telnet curl wget procps traceroute iperf3 language-pack-en-base \
-    zsh autojump \
     build-essential gcc g++ make cmake autoconf automake patch gdb libtool cpp pkg-config libc6-dev libncurses-dev sqlite sqlite3 openssl unixodbc pkg-config re2c keyboard-configuration bzip2 unzip p7zip unrar-free git-core mercurial wget curl nano vim lsof ctags vim-doc vim-scripts ed gawk screen tmux valgrind graphviz graphviz-dev xsel xclip mc urlview tree tofrodos proxychains privoxy socat zhcon supervisor certbot lrzsz mc htop iftop iotop nethogs dstat multitail tig jq ncdu ranger silversearcher-ag asciinema software-properties-common libxml2-dev libbz2-dev libexpat1-dev libssl-dev libffi-dev libsecret-1-dev libgconf2-4 libdb-dev libgmp3-dev zlib1g-dev linux-libc-dev libgudev-1.0-dev uuid-dev libpng-dev libjpeg-dev libfreetype6-dev libxslt1-dev libssh-dev libssh2-1-dev libpcre3-dev libpcre++-dev libmhash-dev libmcrypt-dev libltdl7-dev mcrypt libiconv-hook-dev libsqlite-dev libgettextpo0 libwrap0-dev libreadline-dev zookeeper zookeeper-bin libzookeeper-mt-dev ruby ruby-dev python python-dev python-pip python-setuptools python-lxml python3 python3-dev python3-pip python3-setuptools python3-venv python3-lxml \
-    xfonts-75dpi xfonts-base xfonts-encodings xfonts-utils fonts-wqy-microhei fonts-wqy-zenhei xfonts-wqy \
 	;
 RUN mkdir -p ~/setup && cd ~/setup && \
     wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.bionic_amd64.deb && \
@@ -79,7 +93,7 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
     -a '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh' \
     -a 'if [ "\$TERM" = "xterm-256color" ] && [ -z "\$INSIDE_EMACS" ]; then test -e "\${HOME}/.iterm2_shell_integration.zsh" && source "\${HOME}/.iterm2_shell_integration.zsh";fi'
 
-USER www
+USER ${USER_NAME}
 WORKDIR ${HOMEPATH}
 RUN mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
     mkdir -p ~/{.local,.config,.yarn,.composer,.aria2} && \
@@ -88,8 +102,8 @@ RUN mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
 
 COPY customize.sh ${HOMEPATH}/customize.sh
 USER root
-RUN chmod +x ${HOMEPATH}/customize.sh && chown www:www ${HOMEPATH}/customize.sh
-USER www
+RUN chmod +x ${HOMEPATH}/customize.sh && chown ${USER_NAME}:${USER_NAME} ${HOMEPATH}/customize.sh
+USER ${USER_NAME}
 RUN ${HOMEPATH}/customize.sh --install-cronjob
 
 RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.1/zsh-in-docker.sh)" -- \
@@ -129,10 +143,12 @@ RUN cd ~ && git clone https://github.com/gpakosz/.tmux.git && \
 RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && ~/.fzf/install
 
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
-    bash ~/miniconda.sh -b -p $HOME/miniconda
+    bash ~/miniconda.sh -b -p ${HOME}/miniconda
 
 USER root
 RUN rm -rf /var/lib/apt/lists/*;
 RUN rm -rf ~/setup/*;
-USER www
+USER ${USER_NAME}
 RUN rm -rf ~/setup/*;
+
+CMD [ "zsh" ]
