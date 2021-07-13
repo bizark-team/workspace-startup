@@ -185,7 +185,7 @@ RUN env PATH=$PATH:/home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin /hom
 COPY customize.sh ${HOMEPATH}/customize.sh
 RUN chmod +x ${HOMEPATH}/customize.sh && chown ${USER_NAME}:${USER_NAME} ${HOMEPATH}/customize.sh
 USER ${USER_NAME}
-RUN /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin/pm2 update && /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin/pm2 completion install && /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin/pm2 install pm2-logrotate && \
+RUN /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin/pm2 update && /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin/pm2 install pm2-logrotate && \
     curl -sLf https://spacevim.org/install.sh | bash
 RUN ${HOMEPATH}/customize.sh --install-cronjob
 
