@@ -33,9 +33,6 @@ ENV HOMEPATH /home/${USER_NAME}
 SHELL ["/bin/bash", "-c"]
 
 RUN set -eux; \
-    echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf && \
-    echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf && \
-    sysctl -p && \
     apt-get update; \
     apt-get install -y --no-install-recommends \
     sudo net-tools iputils-ping iproute2 telnet curl wget nano procps traceroute iperf3 openssh-client openssh-server language-pack-en-base language-pack-zh-hans \
