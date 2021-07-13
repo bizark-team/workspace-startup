@@ -130,6 +130,14 @@ RUN cd ~ && git clone https://github.com/gpakosz/.tmux.git && \
     git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && ~/.fzf/install && \
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
     bash ~/miniconda.sh -b -p ${HOME}/miniconda3
+RUN echo $' \n\
+show_channel_urls: true \n\
+auto_activate_base: true \n\
+report_errors: false \n\
+channels: \n\
+  - defaults \n\
+  - conda-forge \n\
+' >> ~/.condarc
 RUN /home/${USER_NAME}/miniconda3/bin/conda init zsh && . ~/.zshrc && conda update -y -n base -c defaults conda && conda create -y --name ${CONDA_ENV_NAME} python=${CONDA_ENV_PY_VER} && conda activate ${CONDA_ENV_NAME} && \
     conda install -y -n ${CONDA_ENV_NAME} pip setuptools wheel && \
     conda install -y -n ${CONDA_ENV_NAME} -c conda-forge nodejs=12 yarn=1.22 && \
