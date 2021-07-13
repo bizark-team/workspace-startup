@@ -132,37 +132,17 @@ RUN sed -i -E "/\.myenvset/d" ${HOMEPATH}/.profile && \
 RUN curl -L https://iterm2.com/shell_integration/install_shell_integration_and_utilities.sh | bash
 RUN cd ~ && git clone https://github.com/gpakosz/.tmux.git && \
     ln -s -f .tmux/.tmux.conf && \
-    cp .tmux/.tmux.conf.local .
-
-RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && ~/.fzf/install
-
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
+    cp .tmux/.tmux.conf.local . && \
+    git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && ~/.fzf/install && \
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
     bash ~/miniconda.sh -b -p ${HOME}/miniconda
-RUN conda init zsh && . ~/.zshrc && conda update -n base -c defaults conda && conda create --name ${CONDA_ENV_NAME} python=${CONDA_ENV_PY_VER} && conda activate ${CONDA_ENV_NAME} conda install -n ${CONDA_ENV_NAME} pip setuptools wheel nodejs=12 yarn=1.22
+RUN /home/${USER_NAME}/miniconda3/bin/conda init zsh && . ~/.zshrc && conda update -y -n base -c defaults conda && conda create -y --name ${CONDA_ENV_NAME} python=${CONDA_ENV_PY_VER} && conda activate ${CONDA_ENV_NAME} conda install -y -n ${CONDA_ENV_NAME} pip setuptools wheel nodejs=12 yarn=1.22 && \
+    echo "source /home/${USER_NAME}/miniconda3/bin/activate myenv" >> ~/.zshrc
 RUN pip install -U pip setuptools wheel six pqi && npm install -g nrm yrm cnpm cyarn pm2@latest typescript npm-check @vue/cli @vue/cli-service-global @vue/cli-init
-#RUN echo $' \n\
-## >>> conda initialize >>> \n\
-## !! Contents within this block are managed by 'conda init' !!  \n\
-#__conda_setup="$('/home/${USER_NAME}/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"  \n\
-#if [ $? -eq 0 ]; then  \n\
-#    eval "$__conda_setup"  \n\
-#else \n\
-#    if [ -f "/home/${USER_NAME}/miniconda3/etc/profile.d/conda.sh" ]; then \n\
-#        . "/home/${USER_NAME}/miniconda3/etc/profile.d/conda.sh" \n\
-#    else \n\
-#        export PATH="/home/${USER_NAME}/miniconda3/bin:$PATH" \n\
-#    fi \n\
-#fi \n\
-#unset __conda_setup \n\
-## <<< conda initialize <<< \n\
-#source /home/${USER_NAME}/miniconda3/bin/activate myenv \n\
-# \n ' >> ~/.zshrc
+
 USER root
-RUN rm -rf /var/lib/apt/lists/*;
-RUN rm -rf ~/setup/*;
-RUN rm -rf ~/miniconda.sh;
+RUN rm -rf /var/lib/apt/lists/* && rm -rf ~/setup/* && rm -rf ~/miniconda.sh
 USER ${USER_NAME}
-RUN rm -rf ~/setup/*;
-RUN rm -rf ~/miniconda.sh;
+RUN rm -rf ~/setup/* && rm -rf ~/miniconda.sh
 
 CMD [ "zsh" ]
