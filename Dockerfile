@@ -42,8 +42,10 @@ RUN set -eux; \
     echo "${USER_NAME}:${USER_PASSWORD}" | chpasswd && usermod -aG sudo ${USER_NAME} && usermod -aG adm ${USER_NAME} && usermod -aG www-data ${USER_NAME} && \
     sed -i -E "s/^Defaults env_reset/Defaults env_reset, timestamp_timeout=-1/g" /etc/sudoers && \
     sed -i -E "/\.myenvset/d" /root/.profile && \
+    echo "export PATH=$PATH:/usr/local/go/bin" >> /root/.profile && \
     echo "if [ -f $HOME/.myenvset ]; then source $HOME/.myenvset;fi" >> /root/.profile && \
     echo 'JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"' >> /etc/environment && \
+    echo 'GOROOT="/usr/local/go"' >> /etc/environment && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
     mkdir -p /data/{app/{backup,etc,tmp,certs,www,ops,downloads/temp},var/{log/app,run,tmp}} && \
     ln -nfs /data/var /data/app/var && \
@@ -65,7 +67,7 @@ RUN set -eux; \
     nodejs yarn vim-nox neovim python-neovim python3-neovim xxd wamerican \
     build-essential gcc g++ make cmake autoconf automake patch gdb libtool cpp pkg-config libc6-dev libncurses-dev sqlite sqlite3 openssl unixodbc pkg-config re2c keyboard-configuration bzip2 unzip p7zip unrar-free git-core mercurial wget curl nano vim lsof ctags vim-doc vim-scripts ed gawk screen tmux valgrind graphviz graphviz-dev xsel xclip mc urlview tree tofrodos proxychains privoxy socat zhcon supervisor certbot lrzsz mc htop iftop iotop nethogs dstat multitail tig jq ncdu ranger silversearcher-ag asciinema software-properties-common libxml2-dev libbz2-dev libexpat1-dev libssl-dev libffi-dev libsecret-1-dev libgconf2-4 libdb-dev libgmp3-dev zlib1g-dev linux-libc-dev libgudev-1.0-dev uuid-dev libpng-dev libjpeg-dev libfreetype6-dev libxslt1-dev libssh-dev libssh2-1-dev libpcre3-dev libpcre++-dev libmhash-dev libmcrypt-dev libltdl7-dev mcrypt libiconv-hook-dev libsqlite-dev libgettextpo0 libwrap0-dev libreadline-dev zookeeper zookeeper-bin libzookeeper-mt-dev gnupg2 pass rng-tools software-properties-common ruby ruby-dev python python-dev python-pip python-setuptools python-lxml python3 python3-dev python3-pip python3-setuptools python3-venv python3-lxml openjdk-8-jdk maven
 RUN mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
-    mkdir -p ~/{.ssh,.local,.config,.cache,.m2,.yarn,.npm,.node-gyp,.composer,.aria2} && \
+    mkdir -p ~/{.ssh/{config.d,ctrl.d},.local,.config,.cache,.m2,.yarn,.npm,.node-gyp,.composer,.aria2} && \
     mkdir -p ~/Downloads/temp && \
     ln -nfs /data/app ~/Code
 
@@ -77,7 +79,13 @@ RUN mkdir -p ~/setup && cd ~/setup && \
     wget https://github.com/BurntSushi/ripgrep/releases/download/12.1.1/ripgrep_12.1.1_amd64.deb && \
     dpkg -i ripgrep_12.1.1_amd64.deb && \
     wget https://github.com/sharkdp/bat/releases/download/v0.17.1/bat_0.17.1_amd64.deb && \
-    dpkg -i bat_0.17.1_amd64.deb
+    dpkg -i bat_0.17.1_amd64.deb && \
+    wget https://golang.org/dl/go1.16.6.linux-amd64.tar.gz && \
+    rm -rf /usr/local/go && tar -C /usr/local -xzf go1.16.6.linux-amd64.tar.gz && \
+echo $' \n\
+export GOROOT="/usr/local/go" \n\
+export PATH="$PATH:/usr/local/go/bin" \n\
+' >> /etc/profile.d/go && \
 
 RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.1/zsh-in-docker.sh)" -- \
 #    -t powerlevel10k/powerlevel10k \
@@ -138,7 +146,7 @@ bind C-g send-prefix \n\
 USER ${USER_NAME}
 WORKDIR ${HOMEPATH}
 RUN mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
-    mkdir -p ~/{.ssh,.local,.config,.cache,.m2,.yarn,.npm,.node-gyp,.composer,.aria2} && \
+    mkdir -p ~/{.ssh/{config.d,ctrl.d},.local,.config,.cache,.m2,.yarn,.npm,.node-gyp,.composer,.aria2} && \
     mkdir -p ~/.local/share/fonts && \
     mkdir -p ~/Downloads/temp && \
     ln -nfs /data/app ~/Code && \
@@ -153,6 +161,7 @@ RUN mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
     fc-cache -vf
 
 RUN sed -i -E "/\.myenvset/d" ${HOMEPATH}/.profile && \
+    echo "export PATH=$PATH:/usr/local/go/bin" >> ${HOMEPATH}/.profile && \
     echo "if [ -f $HOME/.myenvset ]; then source $HOME/.myenvset;fi" >> ${HOMEPATH}/.profile && \
     cp -n /usr/share/maven/conf/settings.xml ~/.m2/
 RUN curl -L https://iterm2.com/shell_integration/install_shell_integration_and_utilities.sh | bash
@@ -187,14 +196,14 @@ RUN chmod +x ${HOMEPATH}/customize.sh && chown ${USER_NAME}:${USER_NAME} ${HOMEP
 USER ${USER_NAME}
 RUN /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin/pm2 update && /home/${USER_NAME}/miniconda3/envs/${CONDA_ENV_NAME}/bin/pm2 install pm2-logrotate && \
     curl -sLf https://spacevim.org/install.sh | bash
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y -q
 RUN ${HOMEPATH}/customize.sh --install-cronjob
 
 USER root
 RUN rm -rf /var/lib/apt/lists/* && rm -rf ~/setup/* && rm -rf ~/miniconda.sh
 RUN printf "%b" '#!'"/usr/bin/env sh\n \
 if [ \"\$1\" = \"daemon\" ];  then \n \
- trap \"echo stop && killall crond && exit 0\" SIGTERM SIGINT \n \
- crond && while true; do sleep 1; done;\n \
+ cron -f \n \
 else \n \
  exec \$@ \n \
 fi" >/entry.sh && chmod +x /entry.sh
