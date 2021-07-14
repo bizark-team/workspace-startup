@@ -42,7 +42,7 @@ RUN set -eux; \
     echo "${USER_NAME}:${USER_PASSWORD}" | chpasswd && usermod -aG sudo ${USER_NAME} && usermod -aG adm ${USER_NAME} && usermod -aG www-data ${USER_NAME} && \
     sed -i -E "s/^Defaults env_reset/Defaults env_reset, timestamp_timeout=-1/g" /etc/sudoers && \
     sed -i -E "/\.myenvset/d" /root/.profile && \
-    echo "export PATH=$PATH:/usr/local/go/bin" >> /root/.profile && \
+    echo "export PATH=$HOME/.local/bin:$HOME/bin:$PATH:/usr/local/go/bin" >> /root/.profile && \
     echo "if [ -f $HOME/.myenvset ]; then source $HOME/.myenvset;fi" >> /root/.profile && \
     echo 'JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"' >> /etc/environment && \
     echo 'GOROOT="/usr/local/go"' >> /etc/environment && \
@@ -116,6 +116,7 @@ RUN wget -O ~/.p10k.zsh https://raw.githubusercontent.com/romkatv/powerlevel10k/
     -a 'export ZSH_TMUX_AUTOCONNECT=false' \
     -a 'zstyle :omz:plugins:ssh-agent agent-forwarding on' \
     -a 'if [ -f $HOME/.myenvset ]; then source $HOME/.myenvset;fi' \
+    -a 'export PATH=$HOME/.local/bin:$HOME/bin:$PATH:/usr/local/go/bin' \
     -a '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh' \
     -a 'if [ "$TERM" = "xterm-256color" ] && [ -z "$INSIDE_EMACS" ]; then test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh";fi'
 RUN sed -i -E "/POWERLEVEL9K_/d" /root/.zshrc && \
@@ -170,7 +171,7 @@ RUN mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
     fc-cache -vf
 
 RUN sed -i -E "/\.myenvset/d" ${HOMEPATH}/.profile && \
-    echo "export PATH=$PATH:/usr/local/go/bin" >> ${HOMEPATH}/.profile && \
+    echo "export PATH=$HOME/.local/bin:$HOME/bin:$PATH:/usr/local/go/bin" >> ${HOMEPATH}/.profile && \
     echo "if [ -f $HOME/.myenvset ]; then source $HOME/.myenvset;fi" >> ${HOMEPATH}/.profile && \
     cp -n /usr/share/maven/conf/settings.xml ~/.m2/
 RUN curl -L https://iterm2.com/shell_integration/install_shell_integration_and_utilities.sh | bash
