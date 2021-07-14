@@ -213,7 +213,7 @@ USER root
 RUN rm -rf /var/lib/apt/lists/* && rm -rf ~/setup/* && rm -rf ~/miniconda.sh
 RUN printf "%b" '#!'"/usr/bin/env sh\n \
 if [ \"\$1\" = \"daemon\" ];  then \n \
- cron -f \n \
+ tail -f /dev/null \n \
 else \n \
  exec \$@ \n \
 fi" >/entry.sh && chmod +x /entry.sh
