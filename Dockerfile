@@ -87,7 +87,7 @@ export GOROOT="/usr/local/go" \n\
 export PATH="$PATH:/usr/local/go/bin" \n\
 ' > /etc/profile.d/go
 
-RUN wget -O ~/.p10k.zsh https://github.com/romkatv/powerlevel10k/blob/master/config/p10k-lean.zsh && sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.1/zsh-in-docker.sh)" -- \
+RUN wget -O ~/.p10k.zsh https://raw.githubusercontent.com/romkatv/powerlevel10k/master/config/p10k-lean.zsh && sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.1/zsh-in-docker.sh)" -- \
     -t powerlevel10k/powerlevel10k \
     -p git \
     -p ssh-agent \
