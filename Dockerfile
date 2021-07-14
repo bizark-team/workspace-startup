@@ -85,7 +85,7 @@ RUN mkdir -p ~/setup && cd ~/setup && \
 echo $' \n\
 export GOROOT="/usr/local/go" \n\
 export PATH="$PATH:/usr/local/go/bin" \n\
-' >> /etc/profile.d/go && \
+' > /etc/profile.d/go
 
 RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.1/zsh-in-docker.sh)" -- \
 #    -t powerlevel10k/powerlevel10k \
