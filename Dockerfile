@@ -117,8 +117,8 @@ RUN wget -O ~/.p10k.zsh https://raw.githubusercontent.com/romkatv/powerlevel10k/
     -a 'if [ -f $HOME/.myenvset ]; then source $HOME/.myenvset;fi' \
     -a '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh' \
     -a 'if [ "$TERM" = "xterm-256color" ] && [ -z "$INSIDE_EMACS" ]; then test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh";fi'
-
-RUN cp -af /root/.oh-my-zsh /home/${USER_NAME}/ && \
+RUN sed -i -E "/POWERLEVEL9K_/d" /root/.zshrc && \
+    cp -af /root/.oh-my-zsh /home/${USER_NAME}/ && \
     cp -af /root/.zshrc /home/${USER_NAME}/ && sed -i 's/root/home\/${USER_NAME}/g' /home/${USER_NAME}/.zshrc && \
     cp -af /root/.p10k.zsh /home/${USER_NAME}/ && \
     chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.oh-my-zsh && \
