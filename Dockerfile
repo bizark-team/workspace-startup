@@ -87,8 +87,8 @@ export GOROOT="/usr/local/go" \n\
 export PATH="$PATH:/usr/local/go/bin" \n\
 ' > /etc/profile.d/go
 
-RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.1/zsh-in-docker.sh)" -- \
-#    -t powerlevel10k/powerlevel10k \
+RUN wget -O ~/.p10k.zsh https://github.com/romkatv/powerlevel10k/blob/master/config/p10k-lean.zsh && sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.1/zsh-in-docker.sh)" -- \
+    -t powerlevel10k/powerlevel10k \
     -p git \
     -p ssh-agent \
     -p z \
@@ -107,9 +107,10 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
     -p https://github.com/zsh-users/zsh-autosuggestions \
     -p https://github.com/zsh-users/zsh-completions \
     -p https://github.com/zsh-users/zsh-syntax-highlighting \
+    -p https://github.com/zsh-users/zsh-history-substring-search \
     -a 'export ZSH_DISABLE_COMPFIX=true' \
     -a 'HIST_STAMPS="yyyy-mm-dd"' \
-    -a 'autoload -U compinit && compinit' \
+    -a '[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh' \
     -a 'export ZSH_TMUX_AUTOSTART=false' \
     -a 'export ZSH_TMUX_AUTOCONNECT=false' \
     -a 'zstyle :omz:plugins:ssh-agent agent-forwarding on' \
@@ -155,9 +156,12 @@ RUN mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
     cd ~/tmp/fonts && \
     ~/tmp/fonts/install.sh && \
     cd ~/.local/share/fonts && rm -rf ~/tmp/fonts && \
-    wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.0.0/Hack.zip && \
+    wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Hack.zip && \
     unzip Hack.zip && \
     rm -rf Hack.zip && \
+    wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip && \
+    unzip Meslo.zip && \
+    rm -rf Meslo.zip && \
     fc-cache -vf
 
 RUN sed -i -E "/\.myenvset/d" ${HOMEPATH}/.profile && \
