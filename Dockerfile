@@ -118,8 +118,12 @@ RUN wget -O ~/.p10k.zsh https://github.com/romkatv/powerlevel10k/blob/master/con
     -a '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh' \
     -a 'if [ "$TERM" = "xterm-256color" ] && [ -z "$INSIDE_EMACS" ]; then test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh";fi'
 
-RUN cp -af /root/.oh-my-zsh /home/${USER_NAME}/ && cp -af /root/.zshrc /home/${USER_NAME}/ && sed -i 's/root/home\/${USER_NAME}/g' /home/${USER_NAME}/.zshrc && \
-    chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.oh-my-zsh && chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.zshrc
+RUN cp -af /root/.oh-my-zsh /home/${USER_NAME}/ && \
+    cp -af /root/.zshrc /home/${USER_NAME}/ && sed -i 's/root/home\/${USER_NAME}/g' /home/${USER_NAME}/.zshrc && \
+    cp -af /root/.p10k.zsh /home/${USER_NAME}/ && \
+    chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.oh-my-zsh && \
+    chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.zshrc && \
+    chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.p10k.zsh
 
 RUN cd ~ && git clone https://github.com/gpakosz/.tmux.git && \
     ln -s -f .tmux/.tmux.conf && \
